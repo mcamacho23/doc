@@ -1,0 +1,6 @@
+/venv/*
+.idea/
+arXiv/*
+oceanic/.ipynb_checkpoints/
+oceanic/__pycache__/
+oceanic/data/audits/prod_*
