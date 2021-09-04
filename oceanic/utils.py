@@ -1,6 +1,8 @@
 from datetime import datetime
 import geojson
 import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 ###################################### Mappings ######################################
 # Maps Smartvel covid_id with postal codes for US states. Useful to map regions to geo maps.
@@ -23,13 +25,77 @@ event_codes_options = [{'label': v, 'value': k} for k, v in event_codes.items()]
 # color_map maps event statuses (red, yellow, ...) with their color in  plotly choropleth
 color_map = {"black": "#111111", "grey": "#444444", "green": "#008800", "yellow": "#FFFF00","red": "#FF0000"}
 months = ['February', 'March', 'April', 'May', 'June', 'July']
-with open('data/simple_borders.json') as f:
+us_state_abbrev = {
+    'Alabama': 'AL',
+    'Alaska': 'AK',
+    'American Samoa': 'AS',
+    'Arizona': 'AZ',
+    'Arkansas': 'AR',
+    'California': 'CA',
+    'Colorado': 'CO',
+    'Connecticut': 'CT',
+    'Delaware': 'DE',
+    'District of Columbia': 'DC',
+    'Florida': 'FL',
+    'Georgia': 'GA',
+    'Guam': 'GU',
+    'Hawaii': 'HI',
+    'Idaho': 'ID',
+    'Illinois': 'IL',
+    'Indiana': 'IN',
+    'Iowa': 'IA',
+    'Kansas': 'KS',
+    'Kentucky': 'KY',
+    'Louisiana': 'LA',
+    'Maine': 'ME',
+    'Maryland': 'MD',
+    'Massachusetts': 'MA',
+    'Michigan': 'MI',
+    'Minnesota': 'MN',
+    'Mississippi': 'MS',
+    'Missouri': 'MO',
+    'Montana': 'MT',
+    'Nebraska': 'NE',
+    'Nevada': 'NV',
+    'New Hampshire': 'NH',
+    'New Jersey': 'NJ',
+    'New Mexico': 'NM',
+    'New York': 'NY',
+    'North Carolina': 'NC',
+    'North Dakota': 'ND',
+    'Northern Mariana Islands':'MP',
+    'Ohio': 'OH',
+    'Oklahoma': 'OK',
+    'Oregon': 'OR',
+    'Pennsylvania': 'PA',
+    'Puerto Rico': 'PR',
+    'Rhode Island': 'RI',
+    'South Carolina': 'SC',
+    'South Dakota': 'SD',
+    'Tennessee': 'TN',
+    'Texas': 'TX',
+    'Utah': 'UT',
+    'Vermont': 'VT',
+    'Virgin Islands': 'VI',
+    'Virginia': 'VA',
+    'Washington': 'WA',
+    'West Virginia': 'WV',
+    'Wisconsin': 'WI',
+    'Wyoming': 'WY',
+    'Washington, DC': 'DC'
+}
+with open('oceanic/data/simple_borders.json') as f:
     geodata = [{'geometry':{'type': 'MultiPolygon', 'coordinates': v['coordinates']}, 'id': k, 'type': 'Feature'} for k,v in geojson.load(f).items()]
     geodata = {'type': 'FeatureCollection', 'features': geodata}
 
 ###################################### Functions ######################################
 def format_dates_str(x):
     return datetime.strptime(x, '%Y-%m-%d %H:%M:%S.%f'). \
+        replace(minute=00, hour=12, second=00, microsecond=00). \
+        strftime("%Y%m%d")
+
+def format_dates_jhu_str(x):
+    return datetime.strptime(x, '%d/%m/%Y'). \
         replace(minute=00, hour=12, second=00, microsecond=00). \
         strftime("%Y%m%d")
 
@@ -59,4 +125,16 @@ def make_choropleth_fig(df, column):
     fig.layout.updatemenus[0].buttons[0].args[1]['frame']['duration'] = 30
     fig.layout.updatemenus[0].buttons[0].args[1]['transition']['duration'] = 5
     fig.layout.dragmode = False
+    return fig
+
+def make_bar_line_fig(x, y_scatter, y_bar, month_name):
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    fig.add_trace(go.Scatter(x=x, y=y_scatter,
+                             name="Incident Rate"), secondary_y=True)
+    fig.add_trace(go.Bar(x=x, y=y_bar,
+                         name="# days with restrictions"), secondary_y=False)
+    fig.update_layout(title_text="Number of days of required facial covering vs. Incident rate per state")
+    fig.update_yaxes(title_text=f"Number of days with required Facial Covering in {month_name}", secondary_y=False)
+    fig.update_yaxes(title_text="Mean Incident Rate", secondary_y=True)
+    fig.update_xaxes(title_text="State Code")
     return fig

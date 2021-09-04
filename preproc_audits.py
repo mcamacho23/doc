@@ -4,6 +4,7 @@
 #################################################
 
 import json
+import csv
 import numpy as np
 import pandas as pd
 import glob
@@ -17,7 +18,7 @@ class AuditDataSet():
     taxonomy_columns = ['2010', '2011', '2998', '2999', '3001', '3002', '3003', '3004', '3006', '4002', '4003']
     columns = audit_columns + taxonomy_columns
     (audit_id, covid_id, timestamp, region_id) = range(4)
-    checkpoint_path = 'data/audits/checkpoint.csv'
+    checkpoint_path = 'oceanic/data/audits/checkpoint.csv'
 
     def __init__(self):
         self.covid_status = None
@@ -73,13 +74,43 @@ class AuditDataSet():
 
     def enrich(self):
         # Enrich data with complete region_id, region codes and region level
-        covid_region_codes = pd.read_json("data/covid_region_codes.json").T
+        covid_region_codes = pd.read_json("oceanic/data/covid_region_codes.json").T
         self.covid_status = pd.merge(self.covid_status, covid_region_codes, left_on='covid_id', right_index=True)
 
 
+class JHUDataSet:
+    def __init__(self):
+        self.jhu = None
+
+    def _load_jhu_files(self, path):
+        filenames = glob.glob(path)
+        for f in filenames:
+            yield pd.read_csv(f)
+
+    def load_jhu_files(self, path):
+        self.jhu = pd.concat(self._load_jhu_files(path))
+
+
+
+#        for i, fname in enumerate(filenames):
+#            f = open(fname)
+#            reader = csv.reader(f)
+
+#########################
+# Audit Dataset generation
+"""
 audit = AuditDataSet()
 # audit.load_audits(from_checkpoint=True)
-audit.load_audits('data/audits/*_covid.json', from_checkpoint=False, to_checkpoint=True)
+audit.load_audits('oceanic/data/audits/*_covid.json', from_checkpoint=False, to_checkpoint=True)
 audit.normalize_and_ffill()
 audit.enrich()
 audit.to_csv('data/audits/covid_status.csv')
+"""
+
+#########################
+# JHU Incident Rate Dataset generation
+jhu = JHUDataSet()
+jhu.load_jhu_files('JHU/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports_us/*.csv')
+print()
+
+
