@@ -127,14 +127,37 @@ def make_choropleth_fig(df, column):
     fig.layout.dragmode = False
     return fig
 
-def make_bar_line_fig(x, y_scatter, y_bar, month_name):
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
-    fig.add_trace(go.Scatter(x=x, y=y_scatter,
-                             name="Incident Rate"), secondary_y=True)
-    fig.add_trace(go.Bar(x=x, y=y_bar,
-                         name="# days with restrictions"), secondary_y=False)
-    fig.update_layout(title_text="Number of days of required facial covering vs. Incident rate per state")
-    fig.update_yaxes(title_text=f"Number of days with required Facial Covering in {month_name}", secondary_y=False)
-    fig.update_yaxes(title_text="Mean Incident Rate", secondary_y=True)
-    fig.update_xaxes(title_text="State Code")
+
+fig_data = {"fig_1": {"yaxes": "Number of days with required Facial Covering in May",
+             "yaxes_sec": "Mean Incident Rate", "xaxes": "State Code", "title": "Number of days of required facial covering vs. Incident rate per state",
+             "legend_scatter": "Incident Rate", "legend_bar": "# days with restrictions"},
+            "fig_2.1": {"yaxes": "Number of days with required Facial Covering",
+                      "yaxes_sec": "Mean Incident Rate", "xaxes": "Month",
+                      "title": "Number of days of required facial covering in NY vs. Incident rate per month",
+                      "legend_scatter": "Incident Rate NY", "legend_bar": "# days with restrictions NY"},
+            "fig_2.2": {"yaxes": "Number of days with required Facial Covering",
+                      "yaxes_sec": "Mean Incident Rate", "xaxes": "Month",
+                      "title": "Number of days of required facial covering in NY vs. Incident rate per month",
+                      "legend_scatter": "Incident Rate US", "legend_bar": "# days with restrictions US"},
+            "fig_3.1": {"yaxes": "Number of days with required Facial Covering",
+                      "yaxes_sec": "Inbound travelers variation between 2021 and 2019 (%)", "xaxes": "Month",
+                      "title": "Number of days of required facial covering in NY vs. Inbound travelers variation 2021-2019",
+                      "legend_scatter": "Inbound travelers variation NY", "legend_bar": "# days with restrictions NY"},
+            "fig_3.2": {"yaxes": "Number of days with required Facial Covering",
+                      "yaxes_sec": "Inbound travelers variation between 2021 and 2019 (%)", "xaxes": "Month",
+                      "title": "Number of days of required facial covering in NY vs. Inbound travelers variation 2021-2019",
+                      "legend_scatter": "Inbound travelers variation US", "legend_bar": "# days with restrictions US"}
+            }
+
+
+def make_bar_line_fig(x, y_scatter, y_bar, fig_ref, fig=None):
+    fig = fig or make_subplots(specs=[[{"secondary_y": True}]])
+    fig.add_trace(go.Scatter(x=x, y=y_scatter, name=fig_data[fig_ref]["legend_scatter"]), secondary_y=True)
+    fig.add_trace(go.Bar(x=x, y=y_bar, name=fig_data[fig_ref]["legend_bar"]), secondary_y=False)
+    fig.update_layout(title_text=fig_data[fig_ref]["title"])
+    fig.update_yaxes(title_text=fig_data[fig_ref]["yaxes"], secondary_y=False)
+    fig.update_yaxes(title_text=fig_data[fig_ref]["yaxes_sec"], secondary_y=True)
+    fig.update_xaxes(title_text=fig_data[fig_ref]["xaxes"])
     return fig
+
+
